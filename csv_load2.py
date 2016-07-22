@@ -10,11 +10,11 @@ import csv
 #
 # cur = conn.cursor()
 
-with open("/Users/michael/Desktop/Denver_Project/trans.csv", "rb") as f:
+with open("/Users/michael/Desktop/Denver_Clustering/sales.csv", "rb") as f:
     reader = csv.reader(f, delimiter=",")
     for i, line in enumerate(reader):
+        print line
         # print 'line[{}] = {}'.format(i, line)
-        print line[1],line[2], line[3]
         # cur.execute("INSERT INTO residential_prop_chars ()
         # conn.commit()
 #

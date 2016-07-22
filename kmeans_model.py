@@ -29,6 +29,9 @@ def kmeans_cluster(x):
     Kx_mapping = {case:cluster for case, cluster in enumerate(clustering.labels_)}
     return Kx_mapping
 
+def agglom_cluster(Kx):
+    
+
 
 if __name__ == '__main__':
 
