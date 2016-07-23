@@ -27,3 +27,5 @@ with open("/Users/michael/Desktop/Denver_Clustering/sales.csv", "rb") as f:
 # f = open(r'C:\Users\n\Desktop\data.csv', 'r')
 # cur.copy_from(f, temp_unicommerce_status, sep=',')
 # f.close()
+
+copy articles from '/Users/michael/Desktop/Denver_Clustering/sales.tsv';
