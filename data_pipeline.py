@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import psycopg2
 import os
+import generate_census_data 
 
 """This script is used as the main data loading and pre-processing file for property level clustering in Denver, CO.
 
@@ -34,6 +35,18 @@ def load_census_data_by_year(db_password,year):
 
     cursor = conn.cursor()
     cursor.execute("Select census_code, value,census_tract, yr from census_info where yr = %s;",(year,))
+    census_df =pd.DataFrame(cursor.fetchall(),columns=['census_code','value','census_tract', 'yr'])
+    conn.close()
+    return census_df
+
+def load_census_data_by_monthd(db_password):
+    """Pull Census Data for each census tract in Denver"""
+
+    conn = psycopg2.connect(database='denver', user='postgres', password=db_password,
+            host='denverclustering.cfoj7z50le0s.us-east-1.rds.amazonaws.com', port='5432')
+
+    cursor = conn.cursor()
+    cursor.execute("Select census_code, value, census_tract, p.monthd from (select distinct monthd from pin_dates) p left join census_info ci on p.monthd = ci.monthd;")
     census_df =pd.DataFrame(cursor.fetchall(),columns=['census_code','value','census_tract', 'yr'])
     conn.close()
     return census_df

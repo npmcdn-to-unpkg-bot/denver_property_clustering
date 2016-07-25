@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import psycopg2
 import os
+import sys
 
 """This script is used for property level feature engineering. Spacial queries can be run and data generated for each parcel in the Denver metro area. Monhtly metrics from 01/01/2010 through 12/01/2015 are:
 
@@ -23,17 +24,21 @@ def propert_level_sales_count(db_password):
     conn = psycopg2.connect(database='denver', user='postgres', password=db_password,
             host='denverclustering.cfoj7z50le0s.us-east-1.rds.amazonaws.com', port='5432')
     cur = conn.cursor()
-    cur.execute("Select pin from parcels;")
+    cur.execute("Select gid,pin from parcels where gid > %s and gid <= %s;",(sys.argv[1],sys.argv[2]))
 
     ins = conn.cursor()
-
+    x = 0
     for i in cur:
-        pin = i[0]
-        ins.execute('update pin_dates set sales_count = sale_agg.sale_count from (select sale_monthd, count(*) as sale_count, pin as pin from pin_dates p left join sales s on p.pin = s.pin and p.monthd = s.sale_monthd Where s.pin in (SELECT p2.pin FROM parcels p INNER JOIN parcels p2 ON ST_DWithin(ST_Transform(p.geom,2232), ST_Transform(p2.geom,2232), 3960) WHERE p.pin = %s) group by sale_monthd ) sale_agg Where pin_dates.monthd = sale_agg.sale_monthd and pin_dates.pin = sale_agg.pin;',(pin))
-
-# ins.execute('select sale_monthd, count(*) from pin_dates p left join sales s on p.pin = s.pin and p.monthd = s.sale_monthd Where p.monthd > '01/01/2015' and s.pin in (SELECT p2.pin FROM parcels p INNER JOIN parcels p2 ON ST_DWithin(ST_Transform(p.geom,2232), ST_Transform(p2.geom,2232), 1000) WHERE p.pin = %s Group by sale_monthd);',(pin))
+        gid = i[0]
+        pin = i[1]
+        print pin
+        ins.execute("update pin_dates set sales_count = sale_agg.sale_count, avg_price = sale_agg.avg_price from (select sale_monthd, count(*) as sale_count, AVG(cast(NULLIF(sale_price, '10') AS BIGINT)) as avg_price from pin_dates p left join sales s on p.pin = s.pin and p.monthd = s.sale_monthd Where s.pin in (SELECT p2.pin FROM parcels p INNER JOIN parcels p2 ON ST_DWithin(ST_Transform(p.geom,2232), ST_Transform(p2.geom,2232), 3960) WHERE p.gid = %s) group by sale_monthd) sale_agg Where pin_dates.monthd = sale_agg.sale_monthd and pin_dates.pin = %s;",(gid,pin))
+        print x
+        x +=1
+        conn.commit()
 
     cur.close()
+    ins.close()
     conn.close()
 
 
@@ -42,4 +47,4 @@ if __name__ == '__main__':
     #import password for AWS RDS
     db_password = os.environ['AWS_DENVER_POSTGRES']
 
-    propert_level_sales(db_password)
+    propert_level_sales_count(db_password)
