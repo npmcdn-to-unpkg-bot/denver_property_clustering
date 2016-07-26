@@ -30,7 +30,8 @@ def run_census_generation():
         if x == 1:
             master_df = finaldf
         else:
-            master_df = master_df.concat(finaldf)
+            master_df = pd.concat([master_df,finaldf])
+        x += 1
     return master_df
 
 

@@ -31,29 +31,24 @@ WHERE p.gid = 176899);
 
 
 
-    update pin_dates set sales_count = sale_agg.sale_count
-    from (
-        select sale_monthd, count(*) as sale_count, p.pin
-        from pin_dates p
-            left join sales s
-                on p.pin = s.pin and p.monthd = s.sale_monthd
-        Where s.pin in (SELECT p2.pin
-                        FROM parcels p
-                            INNER JOIN parcels p2 ON ST_DWithin(ST_Transform(p.geom,2232), ST_Transform(p2.geom,2232), 3960)
-                            WHERE p.gid = %s)
-        and sale_monthd >= '1/1/2010' and sale_monthd < '1/1/2011'
-        group by sale_monthd, p.pin ) sale_agg
-    Where pin_dates.monthd = sale_agg.sale_monthd and pin_dates.pin = sale_agg.pin;
+update pin_dates set sales_count = sale_agg.sale_count
+from (
+    select sale_monthd, count(*) as sale_count,AVG(cast(NULLIF(sale_price, '10') AS BIGINT)) as avg_price, p.pin
+    from sales s
+    Where s.pin in (SELECT p2.pin
+                    FROM parcels p
+                        INNER JOIN parcels p2 ON ST_DWithin(ST_Transform(p.geom,2232), ST_Transform(p2.geom,2232), 3960)
+                        WHERE p.gid = %s)
+    and sale_monthd >= '1/1/2010' and sale_monthd < '1/1/2011'
+    group by sale_monthd, p.pin ) sale_agg
+Where pin_dates.monthd = sale_agg.sale_monthd and pin_dates.pin = sale_agg.pin;
 
 
 
-        select *
-        from pin_dates p
-            left join sales s
-            on p.pin = s.pin and p.monthd = s.sale_monthd
-        Where s.pin in (SELECT p2.pin
-                        FROM parcels p
-                            INNER JOIN parcels p2 ON ST_DWithin(ST_Transform(p.geom,2232), ST_Transform(p2.geom,2232), 3960)
-                            WHERE p.gid = 2345)
-        and sale_year = '2010'
-        group by sale_monthd, p.pin
+select sale_monthd, count(*) as sale_count, AVG(cast(NULLIF(sale_price, '10') AS BIGINT)) as avg_price
+from sales s
+Where s.pin in (SELECT p2.pin
+		FROM parcels p
+		INNER JOIN parcels p2 ON ST_DWithin(ST_Transform(p.geom,2232), ST_Transform(p2.geom,2232), 3960)
+		WHERE p.gid = 2345)
+group by sale_monthd;

@@ -7,11 +7,11 @@ class Two_Stage_Clustering(object):
     Author: Michael G Bennett
     Create Date: 07/23/2016
     Last Update: 07/23/2016
-
-    """
     
+    """
+
     def __init__(self, month_date):
-        self.model = model_class()
+        self.month_date = month_date
 
     def kmeans_group(x):
         kmeans_cluster = KMeans(n_clusters=100,n_init=10,random_state=1)
