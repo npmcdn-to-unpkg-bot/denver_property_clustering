@@ -44,11 +44,11 @@ from (
 Where pin_dates.monthd = sale_agg.sale_monthd and pin_dates.pin = sale_agg.pin;
 
 
-
-select sale_monthd, count(*) as sale_count, AVG(cast(NULLIF(sale_price, '10') AS BIGINT)) as avg_price
-from sales s
-Where s.pin in (SELECT p2.pin
+Insert into sales_metrics(monthd, sales_count, avg_price, pin)
+select sale_monthd, count(*) as sale_count, AVG(cast(NULLIF(sale_price, '10') AS BIGINT)) as avg_price, pin
+from sales
+Where pin in (SELECT p2.pin
 		FROM parcels p
 		INNER JOIN parcels p2 ON ST_DWithin(ST_Transform(p.geom,2232), ST_Transform(p2.geom,2232), 3960)
 		WHERE p.gid = 2345)
-group by sale_monthd;
+group by sale_monthd, pin;

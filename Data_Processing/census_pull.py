@@ -22,11 +22,11 @@ def census_pull_insert(api_key,db_password):
     for i in cur:
         census_code = i[0]
         print census_code
-        census_data = c.acs.get(('NAME', census_code), geo={'for': 'tract:*', 'in': 'state:%s county:031' % states.CO.fips}, year=2015)
+        census_data = c.acs.get(('NAME', census_code), geo={'for': 'tract:*', 'in': 'state:%s county:031' % states.CO.fips}, year=2010)
         for tract in census_data:
             value = tract[census_code]
             tract = tract['NAME'].split(',', 1)[0].split()[-1]
-            ins.execute("INSERT INTO census_info (census_code, value, census_tract, yr) VALUES (%s, %s, %s, 2015);", (census_code,value,tract))
+            ins.execute("INSERT INTO census_info (census_code, value, census_tract, yr) VALUES (%s, %s, %s, 2010);", (census_code,value,tract))
             conn.commit()
         # print census_data[0][census_code], census_data[0]['tract']
 

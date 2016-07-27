@@ -27,19 +27,21 @@ def propert_level_sales_count(db_password):
     cur.execute("Select gid,pin from parcels where gid > %s and gid <= %s;",(sys.argv[1],sys.argv[2]))
 
     ins = conn.cursor()
-    x = 0
+    printcounter = 0
     for i in cur:
+        if (printcounter == 2000):
+            print('Progress report.....2000')
+            printcounter = 0
         gid = i[0]
         pin = i[1]
-        print pin
-        ins.execute("update pin_dates set sales_count = sale_agg.sale_count, avg_price = sale_agg.avg_price from (select sale_monthd, count(*) as sale_count, AVG(cast(NULLIF(sale_price, '10') AS BIGINT)) as avg_price from pin_dates p left join sales s on p.pin = s.pin and p.monthd = s.sale_monthd Where s.pin in (SELECT p2.pin FROM parcels p INNER JOIN parcels p2 ON ST_DWithin(ST_Transform(p.geom,2232), ST_Transform(p2.geom,2232), 3960) WHERE p.gid = %s) group by sale_monthd) sale_agg Where pin_dates.monthd = sale_agg.sale_monthd and pin_dates.pin = %s;",(gid,pin))
-        print x
-        x +=1
+        ins.execute("Insert into sales_metrics (monthd, sales_count, avg_price, pin) select sale_monthd, count(*) as sale_count, AVG(cast(NULLIF(sale_price, '10') AS BIGINT)) as avg_price, %s from sales Where pin in (SELECT p2.pin FROM parcels p INNER JOIN parcels p2 ON ST_DWithin(ST_Transform(p.geom,2232), ST_Transform(p2.geom,2232), 3960) WHERE p.gid = %s) group by sale_monthd;",(pin,gid))
+        printcounter += 1
         conn.commit()
 
     cur.close()
     ins.close()
     conn.close()
+
 
 
 if __name__ == '__main__':
