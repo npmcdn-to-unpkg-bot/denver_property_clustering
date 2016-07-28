@@ -3,7 +3,9 @@ import numpy as np
 import psycopg2
 import os
 import datetime
-import data_pipeline
+import generate_census_data
+import generate_parcels_data
+import sys
 from sklearn.preprocessing import Imputer, StandardScaler
 from sklearn.cluster import KMeans, AgglomerativeClustering
 
@@ -12,7 +14,7 @@ def kmeans_group(x):
     kmeans_cluster = KMeans(n_clusters=100,n_init=10,random_state=1)
     kmeans_cluster.fit(x)
     K_centers = kmeans_cluster.cluster_centers_
-    Kmeans_cluster_mapping = {case: cluster for case, cluster in enumerate(clustering.labels_)}
+    Kmeans_cluster_mapping = {case: cluster for case, cluster in enumerate(kmeans_cluster.labels_)}
     return K_centers, Kmeans_cluster_mapping
 
 def hierarchical_group(K_centers,Kmeans_cluster_mapping):
@@ -31,36 +33,63 @@ def missing_val_imputer(df):
 def fix_data(df):
     #do we need to drop census_tract and monthd?????
     df = df.drop('tax_dist',axis=1)
+    # df = df.drop('NaN',axis=1)
     df['prop_class'] = np.where(df['prop_class'].isnull() == True, 0, df['prop_class'])
+    df = df.drop('Unnamed: 0',axis=1)
+    df = df.drop('monthd',axis=1)
     ids = df.pop('gid')
     df_final = missing_val_imputer(df)
     X = df_final
     return X, ids
 
-if __name__ == '__main__':
+def run_yearly_clusters(year):
 
     db_password = os.environ['AWS_DENVER_POSTGRES']
     conn = psycopg2.connect(database='denver', user='postgres', password=db_password,
             host='denverclustering.cfoj7z50le0s.us-east-1.rds.amazonaws.com', port='5432')
     cur = conn.cursor()
-    cur.execute("Select distinct monthd from pin_dates;")
+    cur.execute("select distinct monthd from pin_dates where Extract(year from monthd) = %s;",(year,))
 
     ## Call all census data
-    census_df = generate_census_data.run_census_generation()
-    # full_clustering_data = data_pipeline.call_pipeline()
-    dict_holder = []
+    # census_df = generate_census_data.run_census_generation()
+    census_df = pd.read_csv('census_df.csv')
+    census_df['monthd'] = pd.to_datetime(census_df['monthd'])
+    census_df = census_df.dropna(axis=1, how='all')
+    census_df = census_df.fillna(value=np.nan)
+
     for i in cur:
         monthd = i[0]
         census_mask = (census_df['monthd'] == monthd)
-        monthly_census_df = census_df.loc[mask]
-        ## alter this for the monthly data 
-        parcels_df = generate_parcels_data.run_parcel_generation()
+        monthly_census_df = census_df.loc[census_mask]
+        ## alter this for the monthly data
+        parcels_df = generate_parcels_data.run_parcel_generation(monthd)
+        parcels_df = parcels_df.fillna(value=np.nan)
+        #
         df_for_clustering = pd.merge(parcels_df, monthly_census_df, on='census_tract')
 
         X, ids = fix_data(df_for_clustering)
+        print 'fit'
         stdsc = StandardScaler()
         x = stdsc.fit_transform(X)
 
         kmeans_centers, kmeans_cluster_mapping = kmeans_group(X)
+        print 'kmenas'
         agglom_map = hierarchical_group(kmeans_centers, kmeans_cluster_mapping)
-        dict_holder.append(agglom_map)
+        print 'agglom'
+
+        groupings = []
+        for key, value in agglom_map.iteritems():
+            groupings.append(value)
+
+        db_password = os.environ['AWS_DENVER_POSTGRES']
+        conn = psycopg2.connect(database='denver', user='postgres', password=db_password,
+                host='denverclustering.cfoj7z50le0s.us-east-1.rds.amazonaws.com', port='5432')
+        cur = conn.cursor()
+
+        for i in enumerate(groupings):
+            cur.execute("insert into cluster_groupings (monthd, pin, cluster_num) values (%s,%s,%s);", (monthd,ids[i[0]],groupings[i[0]]))
+            conn.commit()
+
+        cur.close()
+        conn.close()
+    return 'completed'

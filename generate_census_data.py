@@ -32,9 +32,10 @@ def run_census_generation():
         if x == 1:
             master_df = finaldf
         else:
-            master_df = pd.concat([master_df,finaldf],axis=0)
+            master_df = pd.concat([master_df,finaldf])
         x += 1
     master_df['monthd'] = pd.to_datetime(master_df['monthd'])
+    master_df.to_csv('census_df.csv')
     return master_df
 
 
