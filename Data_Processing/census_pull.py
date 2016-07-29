@@ -26,7 +26,7 @@ def census_pull_insert(api_key,db_password):
         for tract in census_data:
             value = tract[census_code]
             tract = tract['NAME'].split(',', 1)[0].split()[-1]
-            ins.execute("INSERT INTO census_info (census_code, value, census_tract, yr) VALUES (%s, %s, %s, 2010);", (census_code,value,tract))
+            ins.execute("INSERT INTO census_info (census_code, value, census_tract, yr) VALUES (%s, %s, %s, 2011);", (census_code,value,tract))
             conn.commit()
         # print census_data[0][census_code], census_data[0]['tract']
 
