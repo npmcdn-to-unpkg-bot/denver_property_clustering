@@ -47,7 +47,7 @@ def load_census_data_by_tract(db_password,census_tract):
             host='denverclustering.cfoj7z50le0s.us-east-1.rds.amazonaws.com', port='5432')
     cursor = conn.cursor()
 
-    cursor.execute("Select distinct census_code, value, census_tract, p.monthd from (select distinct monthd from pin_dates where monthd = '12/01/2010' or monthd = '12/01/2011' or monthd = '12/01/2012' or monthd = '12/01/2014') p left join (select census_code, value, census_tract, monthd from census_info where census_tract = '%s') ci on p.monthd = ci.monthd;",(census_tract,))
+    cursor.execute("Select distinct census_code, value, census_tract, p.monthd from (select distinct monthd from pin_dates where monthd = '12/01/2010' or monthd = '12/01/2011' or monthd = '12/01/2012' or monthd = '12/01/2014' or monthd = '12/01/2013') p left join (select census_code, value, census_tract, monthd from census_info where census_tract = '%s') ci on p.monthd = ci.monthd;",(census_tract,))
     census_df =pd.DataFrame(cursor.fetchall(),columns=['census_code','value','census_tract', 'monthd'])
     cursor.close()
     conn.close()

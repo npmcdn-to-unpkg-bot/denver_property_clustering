@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CLustering In Denver</title>
+    <meta charset="utf-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
+</head>
+
+<body>
+    <div id="map" style="width: 100%; height: 600px"></div>
+
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+
+    <!-- library for mobile touch support  -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.2/jquery.ui.touch-punch.min.js"></script>
+
+
+    <script src="SliderControl.js"></script>
+
+    <script>
+    var map = L.map('map').setView([39.73, -104.96], 12);
+
+    ATTR = '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+      '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a> | ' +
+      '&copy; <a href="http://cartodb.com/attributions">CartoDB</a>';
+
+    CDB_URL = 'http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
+    L.tileLayer(CDB_URL, {
+      attribution: ATTR
+    }).addTo(map);
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//adding tiles from MapBox//
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+var Clusters_2010 = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWdiZW5uZXR0MzIiLCJhIjoiY2lyMWhpMWJ2MDAzODloa3FlZnFqb2UwcCJ9.vOCEimgmZ4nUK50IOdSgxQ', {maxZoom: 16,id: 'mgbennett32.8tpq0m6h'});
+
+var Clusters_2011 = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWdiZW5uZXR0MzIiLCJhIjoiY2lyMWhpMWJ2MDAzODloa3FlZnFqb2UwcCJ9.vOCEimgmZ4nUK50IOdSgxQ', {maxZoom: 16,id: 'mgbennett32.3lbrl0u0'});
+
+var Clusters_2012 = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWdiZW5uZXR0MzIiLCJhIjoiY2lyMWhpMWJ2MDAzODloa3FlZnFqb2UwcCJ9.vOCEimgmZ4nUK50IOdSgxQ', {maxZoom: 16,id: 'mgbennett32.5yd3zj43'});
+
+var Sales_2013 = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWdiZW5uZXR0MzIiLCJhIjoiY2lyMWhpMWJ2MDAzODloa3FlZnFqb2UwcCJ9.vOCEimgmZ4nUK50IOdSgxQ', {maxZoom: 16,id: 'mgbennett32.cc3soj4u'});
+
+var Sales_2014 = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWdiZW5uZXR0MzIiLCJhIjoiY2lyMWhpMWJ2MDAzODloa3FlZnFqb2UwcCJ9.vOCEimgmZ4nUK50IOdSgxQ', {maxZoom: 16,id: 'mgbennett32.2mgqagxw'});
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//creating slider control//
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+var denverLayers = [Clusters_2010, Clusters_2011, Clusters_2012, Sales_2013,Sales_2014];
+layerGroup = L.layerGroup(denverLayers);
+var sliderControl = L.control.sliderControl({
+  layer: layerGroup,
+  follow: true
+});
+map.addControl(sliderControl);
+sliderControl.startSlider();
+
+
+</script>
+</body>
+
+</html>

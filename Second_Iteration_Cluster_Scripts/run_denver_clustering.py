@@ -108,7 +108,7 @@ def run_clustering():
     cur = conn.cursor()
 
     for i in enumerate(groupings):
-        cur.execute("insert into cluster_groupings (monthd, pin_date, cluster_num,model_run) values (%s,%s,%s, 2);", (monthd,ids[i[0]],groupings[i[0]]))
+        cur.execute("insert into cluster_groupings (pin_date, cluster_num,model_run) values (%s,%s, 2);", (ids[i[0]],groupings[i[0]]))
         conn.commit()
 
     cur.close()
