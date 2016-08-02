@@ -6,6 +6,7 @@ from sklearn.decomposition import PCA
 import pandas as pd
 import psycopg2
 import os
+import generate_census_data
 
 
 def scree_plot(num_components, pca):
@@ -41,45 +42,55 @@ def scree_plot(num_components, pca):
     plt.title("Scree Plot for the Census Data", fontsize=16)
     plt.savefig("scree.png", dpi= 100)
 
+def plot_embedding(X, title=None):
+    x_min, x_max = np.min(X, 0), np.max(X, 0)
+    X = (X - x_min) / (x_max - x_min)
 
-def load_census_data_by_year(db_password,year):
-    """Pull Census Data for each census tract in Denver"""
+    plt.figure(figsize=(10, 6), dpi=250)
+    ax = plt.subplot(111)
+    ax.axis('off')
+    ax.patch.set_visible(False)
+    for i in range(X.shape[0]):
+        plt.text(X[i, 0], X[i, 1], str('test'), fontdict={'weight': 'bold', 'size': 12})
 
-    conn = psycopg2.connect(database='denver', user='postgres', password=db_password,
-            host='denverclustering.cfoj7z50le0s.us-east-1.rds.amazonaws.com', port='5432')
+    plt.xticks([]), plt.yticks([])
+    plt.ylim([-0.1,1.1])
+    plt.xlim([-0.1,1.1])
 
-    cursor = conn.cursor()
-    cursor.execute("Select census_code, value,census_tract, yr from census_info where yr = %s;",(year,))
-    census_df =pd.DataFrame(cursor.fetchall(),columns=['census_code','value','census_tract', 'yr'])
-    conn.close()
-    return census_df
-
-
-def pivot_census_data(unpivoted_dataframe):
-    """Pivots census dataframe
-
-    IN: 19584x4 DF
-    OUT: 144x137 DF
-    """
-    pivoted_census_df = unpivoted_dataframe.pivot(index='census_tract',columns='census_code',values='value')
-    census_dataframe = pivoted_census_df.reset_index()
-    return census_dataframe
-
-def fix_data(df):
-    df_final = missing_val_imputer(df)
-    X = df_final
-    return X
+    if title is not None:
+        plt.title(title, fontsize=16)
+    plt.show()
 
 def missing_val_imputer(df):
+    """Missing values in the final dataframe are imputed using the mean of the column. Missing values are almost exclusivly parcel level metris"""
+
     imr = Imputer(missing_values="NaN",strategy='mean',axis=0)
     imr = imr.fit(df)
     imputed_data = imr.transform(df.values)
     return imputed_data
 
+def fix_data(df):
+    """The is a general clean-up function that drops certain columns, pops parcel_ids and calls the imputer function"""
+
+    df = df.drop('Unnamed: 0',axis=1)
+    df = df.drop('monthd',axis=1)
+    df = df.drop('census_tract', axis=1)
+
+    df_final = missing_val_imputer(df)
+    X = df_final
+    return X
+
+
 
 if __name__ == '__main__':
     db_password = os.environ['AWS_DENVER_POSTGRES']
-    census_df = pivot_census_data(load_census_data_by_year(db_password,2010))
+
+    census_df = pd.read_csv('census_df.csv')
+    census_df['monthd'] = pd.to_datetime(census_df['monthd'])
+    census_df = census_df.dropna(axis=1, how='all')
+    census_df = census_df.fillna(value=np.nan)
+
+
     X = fix_data(census_df)
     stdsc = StandardScaler()
     x = stdsc.fit_transform(X)
@@ -87,3 +98,5 @@ if __name__ == '__main__':
     X_pca = pca.fit_transform(x)
 
     scree_plot(10, pca)
+
+    plot_embedding(X_pca)
