@@ -1,4 +1,4 @@
-# denver_property_clustering
+# Denver Sociodemographic Clustering
 
 This is the repo for my capstone project at Galvanize's Data Science Immersive. The goal of the project was to use unsupervised learning and geospatial analytics to investigate sociodemographic changes in Denver from 2010-2015.
 
