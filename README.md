@@ -4,7 +4,7 @@ This is the repo for my capstone project at Galvanize's Data Science Immersive. 
 
 Data was collected from the US Census Bureau's American Community Survey (ACS) and the city of Denver's Open Data Catalog. 
 
-Geospacial analytics were conducted for various parcel level metrics for each property in Denver. 
+Geospatial analytics were conducted for various parcel level metrics for each property in Denver. 
 
 KMeans, Agglomerative and Two-Stage Clustering algorithms were run for annually for multiple combinations of property level metrics as well as ACS tract level data. 
 
